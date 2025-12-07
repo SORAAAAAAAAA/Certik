@@ -4,7 +4,6 @@ import {
   Text, 
   TextInput, 
   TouchableOpacity, 
-  StyleSheet, 
   KeyboardAvoidingView, 
   Platform,
   TouchableWithoutFeedback,
@@ -12,7 +11,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { useAuth } from '../context/authContext'; 
 import { styles } from '../styles/Signin';
 
@@ -92,7 +91,7 @@ export default function SignIn() {
 
             {/* Link to Sign Up */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
+              <Text style={styles.footerText}>Don&apos;t have an account? </Text>
               <Link href="/signup" asChild>
                 <TouchableOpacity>
                   <Text style={styles.link}>Sign Up</Text>

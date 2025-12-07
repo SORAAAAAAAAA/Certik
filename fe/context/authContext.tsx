@@ -1,14 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, Children } from 'react';
+import React, { createContext, useContext, useState, useEffect} from 'react';
 import { Alert, Text } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithSupabase } from '../utils/supabase/util.signin';
 import { Session, User } from '@supabase/supabase-js';
-import secureStore from 'expo-secure-store';
 
 type AuthContextType = {
     signIn: (data: any) => Promise<void>;
-    signOut: (data: any) => Promise<void>;
     session: any;
     user: any;
     loading: boolean;
@@ -36,7 +34,6 @@ const AuthProvider = ({children} : {children: React.ReactNode}) => {
                 if (storedSession) {
                     // User has a previous session
                     setSession(true);
-                    // You can also restore user data here
                 }
             } catch (error) {
                 console.error('Error initializing app:', error);
@@ -67,12 +64,8 @@ const AuthProvider = ({children} : {children: React.ReactNode}) => {
         
     }
 
-    async function signOut(data: any) {
-        // Implement sign-out logic here
-    }
-
     return (
-        <AuthContext.Provider value={{signIn, signOut, session, user, loading, setSession, setUser}}>
+        <AuthContext.Provider value={{signIn, session, user, loading, setSession, setUser}}>
             {loading ? (
                 <SafeAreaView
                     style={{
