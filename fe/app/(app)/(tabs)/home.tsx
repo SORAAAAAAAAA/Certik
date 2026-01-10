@@ -21,7 +21,6 @@ import {
   Users,
   Lock
 } from 'lucide-react-native';
-import Header from '@/components/ui/Header';
 
 export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);

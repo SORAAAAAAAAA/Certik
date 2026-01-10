@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Image } from 'react-native';
 import { useState } from 'react';
 import { Award, X } from 'lucide-react-native';
-import Header from '@/components/ui/Header';
 import { certificates } from '@/data/certificates';
 import { CertificateType } from '@/types';
 

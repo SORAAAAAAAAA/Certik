@@ -1,5 +1,4 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Award } from 'lucide-react-native';
 
 interface HeaderProps {
   showTagline?: boolean;
