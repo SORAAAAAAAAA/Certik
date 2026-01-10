@@ -7,6 +7,7 @@ import { Session, User } from '@supabase/supabase-js';
 
 type AuthContextType = {
     signIn: (data: any) => Promise<void>;
+    signOut: () => Promise<void>;
     session: any;
     user: any;
     loading: boolean;
@@ -64,8 +65,14 @@ const AuthProvider = ({children} : {children: React.ReactNode}) => {
         
     }
 
+    async function signOut() {
+        await SecureStore.deleteItemAsync('userSession');
+        setUser(null);
+        setSession(false);
+    }
+
     return (
-        <AuthContext.Provider value={{signIn, session, user, loading, setSession, setUser}}>
+        <AuthContext.Provider value={{signIn, session, user, loading, setSession, setUser, signOut}}>
             {loading ? (
                 <SafeAreaView
                     style={{

@@ -22,11 +22,14 @@ export default function Header({ showTagline = true }: HeaderProps) {
 
 const styles = StyleSheet.create({
   header: {
-    paddingBottom: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
+  width: '100%',
+  paddingHorizontal: 16,
+  paddingTop: 16,
+  paddingBottom: 16,
+  backgroundColor: '#ffffff',
+  borderBottomWidth: 1,
+  borderBottomColor: '#f3f4f6',
+},
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -46,13 +49,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   brandName: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
     color: '#6366f1',
     letterSpacing: -0.5,
   },
   tagline: {
-    fontSize: 11,
+    fontSize: 14,
     color: '#6b7280',
     marginTop: -2,
     fontWeight: '500',

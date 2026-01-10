@@ -1,30 +1,13 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Image } from 'react-native';
 import { useState } from 'react';
-import FooterBar from '../components/ui/footerBar';
 import { Award, X } from 'lucide-react-native';
-import Header from '../components/ui/Header';
+import Header from '@/components/ui/Header';
+import { certificates } from '@/data/certificates';
+import { CertificateType } from '@/types';
 
-const certificates = [
-  {
-    id: 1,
-    title: 'React Native Fundamentals',
-    issuer: 'Academy',
-    date: 'Aug 2025',
-    description: 'Comprehensive course covering React Native basics, component architecture, and mobile development best practices.',
-    skills: ['React Native', 'Mobile UI', 'State Management'],
-  },
-  {
-    id: 2,
-    title: 'Mobile App Development',
-    issuer: 'Academy',
-    date: 'Jul 2025',
-    description: 'Advanced mobile development techniques including navigation, API integration, and performance optimization.',
-    skills: ['iOS', 'Android', 'API Integration', 'Performance'],
-  },
-];
 
 export default function Certificates() {
-  const [selectedCert, setSelectedCert] = useState(null);
+  const [selectedCert, setSelectedCert] = useState<CertificateType | null>(null);
 
   return (
     <View style={styles.container}>
@@ -57,8 +40,6 @@ export default function Certificates() {
           ))}
         </View>
       </ScrollView>
-
-      <FooterBar />
 
       <Modal
         visible={selectedCert !== null}

@@ -14,17 +14,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
-// import { useAuth } from '../context/authContext'; // ❌ DISABLED FOR NOW
+import { useAuth } from '../context/authContext'; 
 
 export default function SignIn() {
   const router = useRouter();
 
-  // ❌ AUTH DISABLED
-  // const auth = useAuth();
-  // if (!auth) {
-  //   throw new Error('useAuth must be used within an AuthProvider');
-  // }
-  // const { signIn } = auth;
+  const auth = useAuth();
+   if (!auth) {
+  throw new Error('useAuth must be used within an AuthProvider');
+  }
+  const { signIn } = auth;
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,15 +33,13 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setLoading(true);
 
-    // ❌ LOGIN LOGIC DISABLED
-    // const userData = { email, password };
-    // await signIn(userData);
+    
+    const userData = { email, password };
+    await signIn(userData);
 
-    // ✅ TEMPORARY REDIRECT (change this path to test)
     setTimeout(() => {
       setLoading(false);
       router.replace('/home');
-      // Try: '/', '/(tabs)', '/home'
     }, 800);
   };
 
@@ -137,7 +134,7 @@ export default function SignIn() {
 
                 {/* Footer */}
                 <View style={styles.footer}>
-                  <Text style={styles.footerText}>Don't have an account? </Text>
+                  <Text style={styles.footerText}>Don&apos;t have an account? </Text>
                   <Link href="/signup" asChild>
                     <TouchableOpacity>
                       <Text style={styles.link}>Sign Up</Text>

@@ -1,39 +1,51 @@
 import { Tabs } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Home, Award, User } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/ui/Header';
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: true,
-        tabBarActiveTintColor: '#edaa18',
-        tabBarInactiveTintColor: '#999',
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} />,
-          headerTitle: 'Home',
+
+    <>
+      <SafeAreaView
+        edges={['top']}
+        style={{ backgroundColor: '#ffffff' }}
+      >
+        <Header />
+      </SafeAreaView>
+
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#6366f1',
+          tabBarInactiveTintColor: '#999',
         }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <MaterialIcons name="person" size={24} color={color} />,
-          headerTitle: 'Profile',
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <MaterialIcons name="settings" size={24} color={color} />,
-          headerTitle: 'Settings',
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+            headerTitle: 'Home',
+          }}
+        />
+        <Tabs.Screen
+          name="certificates"
+          options={{
+            title: 'Certificates',
+            tabBarIcon: ({ color }) => <Award size={24} color={color} />,
+            headerTitle: 'Certificates',
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color }) => <User size={24} color={color} />,
+            headerTitle: 'Profile',
+          }}
+        />
+      </Tabs>
+      </>
   );
 }
