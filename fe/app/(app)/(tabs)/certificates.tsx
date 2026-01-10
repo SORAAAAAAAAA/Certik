@@ -3,10 +3,19 @@ import { useState } from 'react';
 import { Award, X } from 'lucide-react-native';
 import { certificates } from '@/data/certificates';
 import { CertificateType } from '@/types';
+import { useWallet } from '@/context/walletContext';
+import ConnectWalletCard from '@/components/profile/ConnectWalletCard';
+import { useRouter } from 'expo-router';
 
 
 export default function Certificates() {
+  const router = useRouter();
+  const { isWalletConnected } = useWallet();
   const [selectedCert, setSelectedCert] = useState<CertificateType | null>(null);
+
+  const handleConnectWallet = () => {
+    router.push({ pathname: '/(app)/(tabs)/profile', params: { scrollToTop: Date.now() } });
+  }
 
   return (
     <View style={styles.container}>
@@ -16,28 +25,32 @@ export default function Certificates() {
           <Text style={styles.title}>Certificates</Text>
         </View>
 
-        <View style={styles.grid}>
-          {certificates.map((cert) => (
-            <TouchableOpacity
-              key={cert.id}
-              style={styles.card}
-              onPress={() => setSelectedCert(cert)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.certImage}>
-                <Award size={48} color="#6366f1" />
-                <Text style={styles.certImageText}>Certificate</Text>
-              </View>
-              <View style={styles.cardContent}>
-                <Text style={styles.certTitle} numberOfLines={2}>
-                  {cert.title}
-                </Text>
-                <Text style={styles.certIssuer}>{cert.issuer}</Text>
-                <Text style={styles.certDate}>Completed · {cert.date}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {!isWalletConnected ? (
+          <ConnectWalletCard onConnect={handleConnectWallet} />
+        ) : (
+          <View style={styles.grid}>
+            {certificates.map((cert) => (
+              <TouchableOpacity
+                key={cert.id}
+                style={styles.card}
+                onPress={() => setSelectedCert(cert)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.certImage}>
+                  <Award size={48} color="#6366f1" />
+                  <Text style={styles.certImageText}>Certificate</Text>
+                </View>
+                <View style={styles.cardContent}>
+                  <Text style={styles.certTitle} numberOfLines={2}>
+                    {cert.title}
+                  </Text>
+                  <Text style={styles.certIssuer}>{cert.issuer}</Text>
+                  <Text style={styles.certDate}>Completed · {cert.date}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       <Modal

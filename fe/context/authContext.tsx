@@ -12,7 +12,6 @@ type AuthContextType = {
     user: any;
     loading: boolean;
     setSession: React.Dispatch<React.SetStateAction<any>>;
-    setUser: React.Dispatch<React.SetStateAction<any>>;
 }
 
 type userType = {
@@ -30,10 +29,11 @@ const AuthProvider = ({children} : {children: React.ReactNode}) => {
     useEffect(() => {
         const initializeApp = async () => {
             try {
-                // Check for existing session in storage
                 const storedSession = await SecureStore.getItemAsync('userSession');
                 if (storedSession) {
                     // User has a previous session
+                    const userData = JSON.parse(storedSession);
+                    setUser(userData);
                     setSession(true);
                 }
             } catch (error) {
@@ -71,8 +71,9 @@ const AuthProvider = ({children} : {children: React.ReactNode}) => {
         setSession(false);
     }
 
+
     return (
-        <AuthContext.Provider value={{signIn, session, user, loading, setSession, setUser, signOut}}>
+        <AuthContext.Provider value={{signIn, session, user, loading, setSession, signOut}}>
             {loading ? (
                 <SafeAreaView
                     style={{

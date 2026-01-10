@@ -1,6 +1,7 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { AuthProvider, useAuth } from '../context/authContext'; 
+import { AuthProvider, useAuth } from '../context/authContext';
+import { WalletProvider } from '../context/walletContext';
 import { StatusBar } from 'expo-status-bar';
 
 function RootLayoutNav() {
@@ -11,7 +12,7 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!auth?.loading) {
       // App is initialized
-      const inProtectedGroup = segments[0] === '(app)'; 
+      const inProtectedGroup = segments[0] === '(app)';
       if (!auth?.session && inProtectedGroup) {
         router.replace('/signup');
       } else if (auth?.session && !inProtectedGroup) {
@@ -26,8 +27,10 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
-      <StatusBar style="dark" />
+      <WalletProvider>
+        <RootLayoutNav />
+        <StatusBar style="dark" />
+      </WalletProvider>
     </AuthProvider>
   );
 }

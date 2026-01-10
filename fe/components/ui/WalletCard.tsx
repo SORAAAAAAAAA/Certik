@@ -6,12 +6,14 @@ interface WalletCardProps {
   address: string;
   onCopy?: () => void;
   copied?: boolean;
+  onDisconnect?: () => void;
 }
 
-export default function WalletCard({ 
-  address, 
+export default function WalletCard({
+  address,
   onCopy,
-  copied = false 
+  copied = false,
+  onDisconnect
 }: WalletCardProps) {
   const handleCopy = () => {
     Clipboard.setString(address);
@@ -27,13 +29,24 @@ export default function WalletCard({
         </View>
       </View>
       <Text style={styles.walletAddress}>{address}</Text>
-      <TouchableOpacity 
-        style={styles.copyButton}
-        onPress={handleCopy}
-      >
-        <Copy size={16} color="#6366f1" />
-        <Text style={styles.copyText}>{copied ? 'Copied!' : 'Copy Address'}</Text>
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={styles.copyButton}
+          onPress={handleCopy}
+        >
+          <Copy size={16} color="#6366f1" />
+          <Text style={styles.copyText}>{copied ? 'Copied!' : 'Copy Address'}</Text>
+        </TouchableOpacity>
+
+        {onDisconnect && (
+          <TouchableOpacity
+            style={styles.disconnectButton}
+            onPress={onDisconnect}
+          >
+            <Text style={styles.disconnectText}>Disconnect</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -84,11 +97,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    alignSelf: 'flex-start',
   },
   copyText: {
     fontSize: 12,
     color: '#6366f1',
+    fontWeight: '600',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  disconnectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fef2f2',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  disconnectText: {
+    fontSize: 12,
+    color: '#ef4444',
     fontWeight: '600',
   },
 });

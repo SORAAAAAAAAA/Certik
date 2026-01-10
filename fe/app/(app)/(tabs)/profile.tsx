@@ -1,20 +1,45 @@
-import React, { useState } from 'react';
-import { 
+import React, { useState, useEffect, useRef } from 'react';
+import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView
 } from 'react-native';
-import { LogOut, Award, Lock, HelpCircle, Share2 } from 'lucide-react-native';
+import { LogOut, HelpCircle, Share2, Award, Lock } from 'lucide-react-native';
 import { useAuth } from '@/context/authContext';
+import { useWallet } from '@/context/walletContext';
 import ProfileHeader from '@/components/ui/ProfileHeader';
 import WalletCard from '@/components/ui/WalletCard';
-import StatCard from '@/components/ui/StatCard';
-import ActionButton from '@/components/ui/ActionButton';
 import SettingItem from '@/components/ui/SettingItem';
+import ConnectWalletCard from '@/components/profile/ConnectWalletCard';
+import BlockchainStats from '@/components/profile/BlockchainStats';
+import QuickActions from '@/components/profile/QuickActions';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function Profile() {
   const [modalVisible, setModalVisible] = useState<null | 'signout' | 'edit' | 'settings'>(null);
   const [copied, setCopied] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const { signOut } = useAuth();
+  const [userName, setUserName] = useState('User');
+  const [userEmail, setUserEmail] = useState('email@example.com');
+
+  const { signOut, user } = useAuth();
+  const { isWalletConnected, walletAddress, connectWallet, disconnectWallet } = useWallet();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params.scrollToTop) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [params.scrollToTop]);
+
+  useEffect(() => {
+    // Fetch user data on mount
+    if (user && user.user.user_metadata.full_name) {
+      setUserName(user.user.user_metadata.full_name);
+    }
+    if (user && user.user.user_metadata.email) {
+      setUserEmail(user.user.user_metadata.email);
+    }
+  }, [user]);
 
   const handleSignOut = () => {
     setModalVisible(null);
@@ -27,73 +52,53 @@ export default function Profile() {
     console.log('Edit Profile clicked');
   };
 
-  const handleToggleNotifications = () => {
+  const handleToggleNotifications = async () => {
     setNotificationsEnabled(!notificationsEnabled);
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <ProfileHeader 
-          name="John Doe"
-          email="john@example.com"
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.content}
+      >
+        <ProfileHeader
+          name={userName}
+          email={userEmail}
         />
 
-        <WalletCard 
-          address="0x742d35Cc6634C0532925a3b844Bc9e7595f8f6e"
-          onCopy={() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-          copied={copied}
-        />
+        {isWalletConnected ? (
+          <>
+            <WalletCard
+              address={walletAddress || ''}
+              onCopy={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              copied={copied}
+              onDisconnect={disconnectWallet}
+            />
 
-        {/* Blockchain Stats */}
-        <View style={styles.statsSection}>
-          <StatCard 
-            icon={Award}
-            value="12"
-            label="Certificates"
-          />
-          <View style={styles.statCard}>
-            <Text style={styles.statBadge}>✓</Text>
-            <Text style={styles.statValue}>100%</Text>
-            <Text style={styles.statLabel}>Verified</Text>
-          </View>
-          <StatCard 
-            icon={Lock}
-            value="12"
-            label="On-Chain"
-          />
-        </View>
+            <BlockchainStats />
 
-        {/* Quick Actions */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <ActionButton 
-            icon={Award}
-            title="View All Certificates"
-            subtitle="Browse your blockchain credentials"
-          />
-          <ActionButton 
-            icon={Share2}
-            title="Share Profile"
-            subtitle="Let others verify your credentials"
-          />
-        </View>
+            <QuickActions />
+          </>
+        ) : (
+          <ConnectWalletCard onConnect={connectWallet} />
+        )}
 
         {/* Account Settings */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Account Settings</Text>
           <View style={styles.settingsList}>
-            <SettingItem 
+            <SettingItem
               icon={Award}
               title="Edit Profile"
               subtitle="Update your personal information"
               onPress={() => setModalVisible('edit')}
             />
 
-            <SettingItem 
+            <SettingItem
               icon={Share2}
               title="Notifications"
               subtitle="Manage certificate alerts"
@@ -102,13 +107,13 @@ export default function Profile() {
               onToggle={handleToggleNotifications}
             />
 
-            <SettingItem 
+            <SettingItem
               icon={Lock}
               title="Security"
               subtitle="Manage privacy & authentication"
             />
 
-            <SettingItem 
+            <SettingItem
               icon={HelpCircle}
               title="Help & Support"
               subtitle="Get assistance & documentation"
@@ -118,8 +123,8 @@ export default function Profile() {
 
         {/* Danger Zone */}
         <View style={styles.sectionContainer}>
-          <TouchableOpacity 
-            style={styles.dangerButton} 
+          <TouchableOpacity
+            style={styles.dangerButton}
             onPress={() => setModalVisible('signout')}
           >
             <LogOut size={18} color="#ef4444" />
@@ -128,7 +133,7 @@ export default function Profile() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Certik • Jan 2024</Text>
+          <Text style={styles.footerText}>Certik • Jan 2026</Text>
           <Text style={styles.versionText}>v1.0.0</Text>
         </View>
       </ScrollView>
@@ -160,24 +165,24 @@ export default function Profile() {
             )}
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setModalVisible(null)}
               >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
               {modalVisible === 'signout' && (
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.confirmButton]} 
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
                   onPress={handleSignOut}
                 >
                   <Text style={styles.confirmText}>Sign Out</Text>
                 </TouchableOpacity>
               )}
               {modalVisible === 'edit' && (
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.confirmButton]} 
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
                   onPress={handleEditProfile}
                 >
                   <Text style={styles.confirmText}>Edit</Text>
@@ -194,42 +199,6 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   content: { flexGrow: 1, paddingBottom: 40 },
-
-  // Stats Section
-  statsSection: {
-    flexDirection: 'row',
-    gap: 12,
-    marginHorizontal: 16,
-    marginVertical: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    justifyContent: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#6366f1',
-    marginTop: 8,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  statBadge: {
-    fontSize: 16,
-    color: '#16a34a',
-    fontWeight: '700',
-    marginBottom: 8,
-  },
 
   // Section Container
   sectionContainer: {

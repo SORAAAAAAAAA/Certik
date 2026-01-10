@@ -9,20 +9,24 @@ import {
   Modal,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { 
-  Upload, 
-  FileText, 
-  Plus, 
-  X, 
-  Shield, 
-  Award, 
+import {
+  Upload,
+  FileText,
+  Plus,
+  X,
+  Shield,
+  Award,
   CheckCircle,
   TrendingUp,
   Users,
   Lock
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { useWallet } from '@/context/walletContext';
 
 export default function Home() {
+  const router = useRouter();
+  const { isWalletConnected } = useWallet();
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [issuer, setIssuer] = useState('');
@@ -40,6 +44,10 @@ export default function Home() {
       setFile(result.assets[0]);
     }
   };
+
+  const handleConnectWallet = () => {
+    router.push({ pathname: '/(app)/(tabs)/profile', params: { scrollToTop: Date.now() } });
+  }
 
   const handleSubmit = () => {
     console.log({
@@ -103,35 +111,47 @@ export default function Home() {
           <Text style={styles.heroSubtitle}>
             Secure your certificates on blockchain. Verify credentials instantly.
           </Text>
-          
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Plus size={20} color="#6366f1" strokeWidth={2.5} />
-            <Text style={styles.addButtonText}>Add Certificate</Text>
-          </TouchableOpacity>
+
+          {isWalletConnected ? (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Plus size={20} color="#6366f1" strokeWidth={2.5} />
+              <Text style={styles.addButtonText}>Add Certificate</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.connectButton}
+              onPress={handleConnectWallet}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.connectButtonText}>Connect Wallet to Start</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          {stats.map((stat, index) => (
-            <View key={index} style={styles.statCard}>
-              <stat.icon size={20} color="#6366f1" strokeWidth={2} />
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
+        {/* Stats - Only show when connected */}
+        {isWalletConnected && (
+          <View style={styles.statsContainer}>
+            {stats.map((stat, index) => (
+              <View key={index} style={styles.statCard}>
+                <stat.icon size={20} color="#6366f1" strokeWidth={2} />
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Features */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Why Choose Certik?</Text>
-          
+
           {features.map((feature, index) => (
             <View key={index} style={styles.featureCard}>
-              <View style={[styles.featureIcon, { backgroundColor: `${feature.color}15` }]}>
+              <View style={[styles.featureIcon, { backgroundColor: feature.color + '15' }]}>
                 <feature.icon size={24} color={feature.color} strokeWidth={2} />
               </View>
               <View style={styles.featureContent}>
@@ -142,22 +162,24 @@ export default function Home() {
           ))}
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          
-          <View style={styles.actionsGrid}>
-            <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
-              <Award size={28} color="#6366f1" strokeWidth={2} />
-              <Text style={styles.actionText}>View All</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
-              <Shield size={28} color="#8b5cf6" strokeWidth={2} />
-              <Text style={styles.actionText}>Verify</Text>
-            </TouchableOpacity>
+        {/* Quick Actions - Only show when connected */}
+        {isWalletConnected && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+            <View style={styles.actionsGrid}>
+              <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
+                <Award size={28} color="#6366f1" strokeWidth={2} />
+                <Text style={styles.actionText}>View All</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionCard} activeOpacity={0.7}>
+                <Shield size={28} color="#8b5cf6" strokeWidth={2} />
+                <Text style={styles.actionText}>Verify</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
 
       {/* Add Certificate Modal */}
@@ -318,6 +340,22 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   addButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#6366f1',
+  },
+  connectButton: {
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
+    alignSelf: 'flex-start',
+  },
+  connectButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#6366f1',
