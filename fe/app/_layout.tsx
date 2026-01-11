@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../context/authContext';
 import { WalletProvider } from '../context/walletContext';
 import { StatusBar } from 'expo-status-bar';
+import { AppKitProvider, AppKit } from '@reown/appkit-react-native';
+import { appKit } from '@/config/appKitConfig';
 
 function RootLayoutNav() {
   const auth = useAuth();
@@ -27,10 +29,13 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <WalletProvider>
-        <RootLayoutNav />
-        <StatusBar style="dark" />
-      </WalletProvider>
+      <AppKitProvider instance={appKit}>
+        <WalletProvider>
+          <RootLayoutNav />
+          <StatusBar style="dark" />
+          <AppKit />
+        </WalletProvider>
+      </AppKitProvider>
     </AuthProvider>
   );
 }

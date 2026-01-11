@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useAppKit, useAccount, useAppKitState } from '@reown/appkit-react-native';
 
 interface WalletContextType {
     isWalletConnected: boolean;
     walletAddress: string | null;
+    chainId: string | number | undefined;
     connectWallet: () => void;
     disconnectWallet: () => void;
 }
@@ -10,25 +12,31 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-    const [isWalletConnected, setIsWalletConnected] = useState(false);
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
+    // Use AppKit hooks for real wallet connection
+    const { open, disconnect } = useAppKit();
+    const { address, isConnected, chainId } = useAccount();
+    const appKitState = useAppKitState();
+
+    // Debug log to track wallet state
+    console.log('[WalletContext] useAccount:', { isConnected, address: address?.slice(0, 10) + '...', chainId });
+    console.log('[WalletContext] useAppKitState:', appKitState);
 
     const connectWallet = () => {
-        // Simulate connection
-        setIsWalletConnected(true);
-        setWalletAddress('0x742d35Cc6634C0532925a3b844Bc9e7595f8f6e');
+        // Opens the AppKit modal for wallet connection
+        open();
     };
 
     const disconnectWallet = () => {
-        setIsWalletConnected(false);
-        setWalletAddress(null);
+        // Disconnect from AppKit
+        disconnect();
     };
 
     return (
         <WalletContext.Provider
             value={{
-                isWalletConnected,
-                walletAddress,
+                isWalletConnected: isConnected,
+                walletAddress: address || null,
+                chainId,
                 connectWallet,
                 disconnectWallet
             }}

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Clipboard } from 'react-native';
-import { Copy } from 'lucide-react-native';
+import { Copy, Settings } from 'lucide-react-native';
+import { useAppKit } from '@reown/appkit-react-native';
+
 
 interface WalletCardProps {
   address: string;
@@ -15,18 +17,26 @@ export default function WalletCard({
   copied = false,
   onDisconnect
 }: WalletCardProps) {
+  const { open } = useAppKit();
+
   const handleCopy = () => {
     Clipboard.setString(address);
     onCopy?.();
+  };
+
+  const handleManageWallet = () => {
+    // Open AppKit modal with Account view
+    open({ view: 'Account' });
   };
 
   return (
     <View style={styles.walletCard}>
       <View style={styles.walletHeader}>
         <Text style={styles.walletLabel}>Wallet Address</Text>
-        <View style={styles.verifiedBadge}>
-          <Text style={styles.verifiedText}>✓ Verified</Text>
-        </View>
+        <TouchableOpacity onPress={handleManageWallet} style={styles.manageButton}>
+          <Settings size={16} color="#6366f1" />
+          <Text style={styles.manageText}>Manage</Text>
+        </TouchableOpacity>
       </View>
       <Text style={styles.walletAddress}>{address}</Text>
       <View style={styles.actions}>
@@ -71,15 +81,18 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '600',
   },
-  verifiedBadge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  manageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f0f4ff',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 6,
   },
-  verifiedText: {
-    fontSize: 11,
-    color: '#16a34a',
+  manageText: {
+    fontSize: 12,
+    color: '#6366f1',
     fontWeight: '600',
   },
   walletAddress: {
