@@ -16,7 +16,7 @@ function RootLayoutNav() {
       // App is initialized
       const inProtectedGroup = segments[0] === '(app)';
       if (!auth?.session && inProtectedGroup) {
-        router.replace('/signup');
+        router.replace('/signin');
       } else if (auth?.session && !inProtectedGroup) {
         router.replace('/(app)/(tabs)/home');
       }
