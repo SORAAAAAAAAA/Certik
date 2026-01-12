@@ -2,7 +2,7 @@
 
 A blockchain-based certificate verification system built on Base L2, allowing secure issuance and verification of certificates as NFTs with metadata stored on IPFS.
 
-## 🚀 Deployed Smart Contract
+## Deployed Smart Contract
 
 ### Base Sepolia Testnet
 
@@ -11,7 +11,7 @@ A blockchain-based certificate verification system built on Base L2, allowing se
 - **Verified Contract**: [View on BaseScan](https://sepolia.basescan.org/address/0x1b36756bC80Cbdeca3Fc88FF9eb3F11Fb915daE7#code)
 - **Interact with Contract**: [Write Contract](https://sepolia.basescan.org/address/0x1b36756bC80Cbdeca3Fc88FF9eb3F11Fb915daE7#writeContract)
 
-## 📋 Project Structure
+## Project Structure
 
 ```
 Certik/
@@ -24,17 +24,17 @@ Certik/
 └── README.md           # This file
 ```
 
-## 🔧 Smart Contract Features
+## Smart Contract Features
 
-- ✅ **Certificate Minting**: Issue unique certificates as ERC-721 NFTs
-- ✅ **Batch Minting**: Issue multiple certificates in one transaction
-- ✅ **IPFS Integration**: Store certificate metadata on Pinata IPFS
-- ✅ **Revocation System**: Invalidate fraudulent or invalid certificates
-- ✅ **Public Verification**: Anyone can verify certificate authenticity on-chain
-- ✅ **Issuer Tracking**: Track who issued each certificate
-- ✅ **Timestamp Recording**: Automatic issue date tracking
+**Certificate Minting**: Issue unique certificates as ERC-721 NFTs
+**Batch Minting**: Issue multiple certificates in one transaction
+**IPFS Integration**: Store certificate metadata on Pinata IPFS
+**Revocation System**: Invalidate fraudulent or invalid certificates
+**Public Verification**: Anyone can verify certificate authenticity on-chain
+**Issuer Tracking**: Track who issued each certificate
+**Timestamp Recording**: Automatic issue date tracking
 
-## 🌐 Network Information
+## Network Information
 
 ### Base Sepolia Testnet (Current)
 
@@ -49,7 +49,7 @@ Certik/
 - **RPC URL**: https://mainnet.base.org
 - **Explorer**: https://basescan.org
 
-## 📦 Smart Contract Setup
+## Smart Contract Setup
 
 For detailed smart contract documentation, deployment instructions, and backend integration examples, see [smc/README.md](smc/README.md).
 
@@ -73,7 +73,7 @@ npm run deploy:sepolia
 npx hardhat verify --network baseSepolia <CONTRACT_ADDRESS>
 ```
 
-## 🔗 Contract Integration
+## Contract Integration
 
 The contract ABI is available at `smc/abi/CertificateNFT.json` for backend integration.
 
@@ -100,11 +100,11 @@ function getCertificateInfo(uint256 tokenId)
     returns (owner, issuer, metadataURI, issuedAt, isValid, revoked)
 ```
 
-## 🎨 Frontend
+## Frontend
 
 The frontend application is located in the `fe/` directory.
 
-## 📝 Backend Integration
+## Backend Integration
 
 ### Workflow
 
@@ -138,18 +138,18 @@ await tx.wait();
 
 For complete backend integration examples including Pinata setup, see [smc/README.md](smc/README.md).
 
-## 🔐 Security
+## Security
 
 - Only contract owner can mint and revoke certificates
 - All certificate actions are logged via events
 - Certificate data is immutable once minted
 - Public verification ensures transparency
 
-## 📄 License
+## License
 
 MIT
 
-## 🔗 Useful Links
+## Useful Links
 
 - **Contract on BaseScan**: https://sepolia.basescan.org/address/0x1b36756bC80Cbdeca3Fc88FF9eb3F11Fb915daE7
 - **Write Contract Interface**: https://sepolia.basescan.org/address/0x1b36756bC80Cbdeca3Fc88FF9eb3F11Fb915daE7#writeContract
