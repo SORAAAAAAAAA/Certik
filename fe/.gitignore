@@ -1,6 +1,16 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# Environment files
 .env
+.env.*
+!.env.example
+
+# EAS config with secrets (use eas.json.example as template)
+eas.json
+!eas.json.example
+
+# Google Play Store key
+play-store-key.json
 
 # dependencies
 node_modules/

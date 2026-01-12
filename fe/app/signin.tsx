@@ -90,8 +90,6 @@ export default function SignIn() {
                       onChangeText={setEmail}
                       autoCapitalize="none"
                       keyboardType="email-address"
-                      onFocus={() => setFocusedInput('email')}
-                      onBlur={() => setFocusedInput('')}
                     />
                   </View>
                 </View>
@@ -110,8 +108,6 @@ export default function SignIn() {
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry
-                      onFocus={() => setFocusedInput('password')}
-                      onBlur={() => setFocusedInput('')}
                     />
                   </View>
                 </View>

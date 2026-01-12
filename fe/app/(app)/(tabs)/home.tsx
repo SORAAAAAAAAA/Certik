@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Alert,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import {
@@ -19,20 +22,38 @@ import {
   CheckCircle,
   TrendingUp,
   Users,
-  Lock
+  Lock,
+  ExternalLink,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useWallet } from '@/context/walletContext';
+import { useCertificates } from '@/context/certificateContext';
+import { useCertificateUpload } from '@/hooks/useCertificateUpload';
+import { ImageSource } from '@/types/certificate';
+import { mintWithPrivateKey, MintProgress } from '@/utils/blockchain/certificate.service';
 
 export default function Home() {
   const router = useRouter();
-  const { isWalletConnected } = useWallet();
+  const { isWalletConnected, walletAddress } = useWallet();
+  const { stats, refreshCertificates } = useCertificates();
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [issuer, setIssuer] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+
+  // Pinata upload hook
+  const { isUploading, progress, uploadCertificate, reset: resetUpload } = useCertificateUpload();
+  
+  // Minting state
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintProgress, setMintProgress] = useState<MintProgress | null>(null);
+  
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
+  const [mintedTxHash, setMintedTxHash] = useState<string | null>(null);
 
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -49,27 +70,131 @@ export default function Home() {
     router.push({ pathname: '/(app)/(tabs)/profile', params: { scrollToTop: Date.now() } });
   }
 
-  const handleSubmit = () => {
-    console.log({
-      title,
-      issuer,
-      description,
-      date,
-      file,
-    });
-    // Reset form and close modal
+  const handleSubmit = async () => {
+    // Validate required fields
+    if (!title.trim()) {
+      Alert.alert('Error', 'Please enter a certificate title');
+      return;
+    }
+    if (!issuer.trim()) {
+      Alert.alert('Error', 'Please enter the issuer name');
+      return;
+    }
+    if (!file) {
+      Alert.alert('Error', 'Please select a certificate file');
+      return;
+    }
+    if (!walletAddress) {
+      Alert.alert('Error', 'Please connect your wallet first');
+      return;
+    }
+
+    // Prepare image source for Pinata
+    const imageSource: ImageSource = {
+      uri: file.uri,
+      type: file.mimeType || 'image/png',
+      name: file.name || `certificate_${Date.now()}.png`,
+    };
+
+    // Prepare certificate data
+    const certificateData = {
+      name: title,
+      description: description || `Certificate: ${title}`,
+      issuerName: issuer,
+      recipientName: 'Certificate Holder',
+      recipientAddress: walletAddress,
+      issueDate: date || new Date().toISOString().split('T')[0],
+      category: 'Certificate',
+      credentialId: `CERT-${Date.now()}`,
+    };
+
+    console.log('Uploading certificate to Pinata...', certificateData);
+
+    // Step 1: Upload to Pinata
+    const uploadResult = await uploadCertificate(imageSource, certificateData);
+
+    if (!uploadResult.success || !uploadResult.metadataUri) {
+      Alert.alert('Upload Failed', uploadResult.error || 'Failed to upload certificate to IPFS');
+      return;
+    }
+
+    console.log('Upload successful! Metadata URI:', uploadResult.metadataUri);
+
+    // Step 2: Mint the certificate NFT using private key (bypasses WalletConnect)
+    setIsMinting(true);
+    
+    try {
+      console.log('[Home] Starting mint with private key...');
+      
+      const mintResult = await mintWithPrivateKey(
+        walletAddress,
+        uploadResult.metadataUri,
+        setMintProgress
+      );
+
+      if (mintResult.success) {
+        // Show custom success modal instead of Alert
+        setMintedTokenId(mintResult.tokenId?.toString() || null);
+        setMintedTxHash(mintResult.txHash || null);
+        setShowSuccessModal(true);
+        // Refresh certificate stats
+        refreshCertificates();
+      } else {
+        Alert.alert(
+          'Minting Failed',
+          mintResult.error || 'Failed to mint certificate NFT.\n\nNote: Your metadata was uploaded to IPFS successfully. You can try minting again later.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Minting Error', errorMessage);
+    } finally {
+      setIsMinting(false);
+      setMintProgress(null);
+    }
+  };
+
+  const resetForm = () => {
     setModalVisible(false);
     setTitle('');
     setIssuer('');
     setDescription('');
     setDate('');
     setFile(null);
+    resetUpload();
+    setMintProgress(null);
   };
 
-  const stats = [
-    { label: 'Certificates', value: '12', icon: Award },
-    { label: 'Verified', value: '100%', icon: CheckCircle },
-    { label: 'On-Chain', value: '12', icon: Lock },
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    setMintedTokenId(null);
+    setMintedTxHash(null);
+    resetForm();
+  };
+
+  const handleViewCertificates = () => {
+    handleSuccessClose();
+    router.push('/(app)/(tabs)/certificates');
+  };
+
+  const handleViewOnExplorer = () => {
+    if (mintedTxHash) {
+      const explorerUrl = `https://sepolia.basescan.org/tx/${mintedTxHash}`;
+      Linking.openURL(explorerUrl);
+    }
+  };
+
+  const isProcessing = isUploading || isMinting;
+  const currentProgress = isMinting ? mintProgress?.message : progress?.message;
+  const progressPercent = isMinting 
+    ? (mintProgress?.stage === 'minting' ? 60 : mintProgress?.stage === 'confirming' ? 80 : mintProgress?.stage === 'complete' ? 100 : 50)
+    : (progress?.progress || 0);
+
+  const statsData = [
+    { label: 'Certificates', value: stats.total.toString(), icon: Award },
+    { label: 'Verified', value: stats.verifiedPercent, icon: CheckCircle },
+    { label: 'On-Chain', value: stats.onChain.toString(), icon: Lock },
   ];
 
   const features = [
@@ -135,7 +260,7 @@ export default function Home() {
         {/* Stats - Only show when connected */}
         {isWalletConnected && (
           <View style={styles.statsContainer}>
-            {stats.map((stat, index) => (
+            {statsData.map((stat, index) => (
               <View key={index} style={styles.statCard}>
                 <stat.icon size={20} color="#6366f1" strokeWidth={2} />
                 <Text style={styles.statValue}>{stat.value}</Text>
@@ -280,19 +405,111 @@ export default function Home() {
                 )}
               </View>
 
+              {/* Progress */}
+              {isProcessing && (
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBarBackground}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${progressPercent}%` },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {currentProgress || 'Processing...'}
+                  </Text>
+                </View>
+              )}
+
               {/* Submit */}
               <TouchableOpacity
-                style={styles.button}
+                style={[styles.button, isProcessing && styles.buttonDisabled]}
                 activeOpacity={0.85}
                 onPress={handleSubmit}
+                disabled={isProcessing}
               >
-                <Text style={styles.buttonText}>Save Certificate</Text>
+                {isProcessing ? (
+                  <View style={styles.buttonContent}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={styles.buttonText}>
+                      {isMinting ? 'Minting...' : 'Uploading...'}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.buttonText}>Upload & Mint NFT</Text>
+                )}
               </TouchableOpacity>
 
               <Text style={styles.helper}>
-                File and metadata will be hashed and stored on-chain.
+                Certificate will be uploaded to IPFS and minted as NFT on Base Sepolia.
               </Text>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleSuccessClose}
+      >
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContent}>
+            {/* Title */}
+            <Text style={styles.successTitle}>Certificate Minted!</Text>
+            <Text style={styles.successSubtitle}>
+              Your certificate has been successfully minted as an NFT on the blockchain.
+            </Text>
+
+            {/* Token Info */}
+            <View style={styles.tokenInfoCard}>
+              <View style={styles.tokenInfoRow}>
+                <Text style={styles.tokenInfoLabel}>Token ID</Text>
+                <Text style={styles.tokenInfoValue}>#{mintedTokenId}</Text>
+              </View>
+              {mintedTxHash && (
+                <View style={styles.tokenInfoRow}>
+                  <Text style={styles.tokenInfoLabel}>Transaction</Text>
+                  <Text style={styles.tokenInfoValueSmall} numberOfLines={1} ellipsizeMode="middle">
+                    {mintedTxHash.slice(0, 8)}...{mintedTxHash.slice(-6)}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.successButtonsContainer}>
+              <TouchableOpacity
+                style={styles.successButtonPrimary}
+                onPress={handleViewCertificates}
+                activeOpacity={0.85}
+              >
+                <Award size={18} color="#ffffff" />
+                <Text style={styles.successButtonPrimaryText}>View Certificates</Text>
+              </TouchableOpacity>
+
+              {mintedTxHash && (
+                <TouchableOpacity
+                  style={styles.successButtonSecondary}
+                  onPress={handleViewOnExplorer}
+                  activeOpacity={0.85}
+                >
+                  <ExternalLink size={16} color="#6366f1" />
+                  <Text style={styles.successButtonSecondaryText}>View on Explorer</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.successButtonClose}
+                onPress={handleSuccessClose}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.successButtonCloseText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -559,10 +776,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  buttonDisabled: {
+    backgroundColor: '#a5b4fc',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   buttonText: {
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
+  },
+
+  progressContainer: {
+    marginBottom: 16,
+  },
+  progressBarBackground: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#6366f1',
+    borderRadius: 4,
+  },
+  progressText: {
+    color: '#6b7280',
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
   },
 
   helper: {
@@ -570,5 +816,115 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textAlign: 'center',
     marginTop: 12,
+  },
+
+  // Success Modal Styles
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successModalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  tokenInfoCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  tokenInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  tokenInfoLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  tokenInfoValue: {
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: '700',
+  },
+  tokenInfoValueSmall: {
+    fontSize: 13,
+    color: '#111827',
+    fontWeight: '600',
+    fontFamily: 'monospace',
+    maxWidth: 150,
+  },
+  successButtonsContainer: {
+    width: '100%',
+    gap: 12,
+  },
+  successButtonPrimary: {
+    backgroundColor: '#6366f1',
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  successButtonPrimaryText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  successButtonSecondary: {
+    backgroundColor: '#eef2ff',
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  successButtonSecondaryText: {
+    color: '#6366f1',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  successButtonClose: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  successButtonCloseText: {
+    color: '#9ca3af',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

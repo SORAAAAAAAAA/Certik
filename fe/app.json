@@ -1,15 +1,24 @@
 {
   "expo": {
-    "name": "AppDev",
-    "slug": "AppDev",
+    "name": "Certik",
+    "slug": "certik",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "certik",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "owner": "plsheal",
+    "updates": {
+      "url": "https://u.expo.dev/3387a9b5-b778-48f4-8d83-13688c3f8f6a"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.soraaaa.certik",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +29,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.soraaaa.AppDev"
+      "package": "com.soraaaa.certik",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -44,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3387a9b5-b778-48f4-8d83-13688c3f8f6a"
+      }
     }
   }
 }

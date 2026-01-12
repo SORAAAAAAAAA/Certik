@@ -1,0 +1,46 @@
+{
+  "cli": {
+    "version": ">= 16.3.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "20.18.0",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "YOUR_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY": "YOUR_SUPABASE_KEY",
+        "EXPO_PUBLIC_CONTRACT_ADDRESS": "YOUR_CONTRACT_ADDRESS",
+        "EXPO_PUBLIC_PINATA_GATEWAY": "YOUR_PINATA_GATEWAY",
+        "EXPO_PUBLIC_BASE_SEPOLIA_RPC": "YOUR_RPC_URL"
+      }
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./play-store-key.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "your-apple-id@email.com",
+        "ascAppId": "your-app-store-connect-app-id"
+      }
+    }
+  }
+}

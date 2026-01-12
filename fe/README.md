@@ -1,50 +1,118 @@
-# Welcome to your Expo app 👋
+# Certik - Certificate NFT Mobile App 📜
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application for uploading certificates to the blockchain as NFTs on Base L2.
+
+## Features
+
+- 🔐 Wallet connection via WalletConnect/AppKit
+- 📤 Upload certificate images to IPFS via Pinata
+- 🎨 Automatic NFT metadata generation (ERC-721 compliant)
+- ⛓️ Mint certificates as NFTs on Base Sepolia
+- ✅ Certificate verification on-chain
 
 ## Get started
 
 1. Install dependencies
 
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. Start the app
+2. Configure environment variables
+
+   Create a `.env` file based on `.env.example`:
 
    ```bash
-   npx expo start
+   # Pinata API Configuration (get from https://app.pinata.cloud/developers/api-keys)
+   EXPO_PUBLIC_PINATA_JWT=your_pinata_jwt_token
+   
+   # Optional: Alternative Pinata auth method
+   EXPO_PUBLIC_PINATA_API_KEY=your_api_key
+   EXPO_PUBLIC_PINATA_API_SECRET=your_api_secret
+   
+   # Optional: Custom IPFS Gateway
+   EXPO_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
+   
+   # Smart Contract Address (deployed on Base Sepolia)
+   EXPO_PUBLIC_CONTRACT_ADDRESS=your_contract_address
    ```
 
-In the output, you'll find options to open the app in a
+3. Start the app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   pnpm start
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Pinata Integration
 
-## Get a fresh project
+This app uses Pinata to store certificate images and metadata on IPFS.
 
-When you're ready, run:
+### How it works
 
-```bash
-npm run reset-project
+1. **Upload Image**: When you create a certificate, the image is uploaded to Pinata IPFS
+2. **Create Metadata**: NFT metadata (ERC-721 compliant) is generated with the IPFS image URI
+3. **Upload Metadata**: The metadata JSON is uploaded to Pinata IPFS
+4. **Mint NFT**: The metadata IPFS URI is used to mint the certificate NFT
+
+### Usage Example
+
+```typescript
+import { useCertificateMint } from '@/hooks/useCertificateMint';
+import { pickImageFromLibrary } from '@/utils/imagePicker';
+
+const { mintCertificate, progress, result } = useCertificateMint();
+
+// Pick an image
+const imageResult = await pickImageFromLibrary();
+
+// Mint the certificate
+const result = await mintCertificate(
+  imageResult.imageSource,
+  {
+    name: 'React Native Certificate',
+    description: 'Completion certificate for React Native course',
+    issuerName: 'Academy',
+    recipientName: 'John Doe',
+    recipientAddress: '0x...',
+    issueDate: '2025-01-12',
+    skills: ['React Native', 'Mobile Development'],
+  },
+  provider // from wallet connection
+);
+
+console.log('Minted Token ID:', result.tokenId);
+console.log('Metadata URI:', result.metadataUri);
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Project Structure
 
-## Learn more
+```
+fe/
+├── app/                    # Expo Router pages
+├── components/
+│   └── certificate/        # Certificate upload components
+├── config/
+│   ├── appKitConfig.ts     # WalletConnect configuration
+│   └── pinataConfig.ts     # Pinata API configuration
+├── hooks/
+│   ├── useCertificateUpload.ts  # IPFS upload hook
+│   └── useCertificateMint.ts    # Full mint flow hook
+├── types/
+│   └── certificate.ts      # Certificate & NFT metadata types
+└── utils/
+    ├── imagePicker.ts      # Image selection utilities
+    ├── pinata/
+    │   └── pinata.service.ts    # Pinata IPFS service
+    └── blockchain/
+        └── certificate.service.ts  # Smart contract interaction
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Smart Contract
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The CertificateNFT smart contract is deployed on Base Sepolia. See `/smc` folder for contract source.
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Key functions:
+- `mintCertificate(recipient, metadataURI)` - Mint a new certificate NFT
+- `getCertificateInfo(tokenId)` - Get certificate details
+- `isCertificateValid(tokenId)` - Check if certificate is valid
+- `revokeCertificate(tokenId)` - Revoke a certificate (owner only)

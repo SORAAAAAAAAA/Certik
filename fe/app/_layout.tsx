@@ -2,6 +2,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../context/authContext';
 import { WalletProvider } from '../context/walletContext';
+import { CertificateProvider } from '../context/certificateContext';
 import { StatusBar } from 'expo-status-bar';
 import { AppKitProvider, AppKit } from '@reown/appkit-react-native';
 import { appKit } from '@/config/appKitConfig';
@@ -31,9 +32,11 @@ export default function RootLayout() {
     <AuthProvider>
       <AppKitProvider instance={appKit}>
         <WalletProvider>
-          <RootLayoutNav />
-          <StatusBar style="dark" />
-          <AppKit />
+          <CertificateProvider>
+            <RootLayoutNav />
+            <StatusBar style="dark" />
+            <AppKit />
+          </CertificateProvider>
         </WalletProvider>
       </AppKitProvider>
     </AuthProvider>

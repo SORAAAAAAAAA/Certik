@@ -13,14 +13,12 @@ import {
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { useAuth } from '../context/authContext';
-import { supabase } from '../infra/supabase';
 import { isValidEmail, isValidPassword, isNonEmptyString } from '../validators/authValidator';
 import { signUpWithSupabase } from '../utils/supabase/util.signup';
 
 export default function SignUp() {
-  const router = useRouter();
   
   const { signIn } = useAuth();
   
@@ -114,8 +112,6 @@ export default function SignUp() {
                       placeholderTextColor="#9ca3af"
                       value={name}
                       onChangeText={setName}
-                      onFocus={() => setFocusedInput('name')}
-                      onBlur={() => setFocusedInput('')}
                     />
                   </View>
                 </View>
@@ -135,8 +131,6 @@ export default function SignUp() {
                       onChangeText={setEmail}
                       autoCapitalize="none"
                       keyboardType="email-address"
-                      onFocus={() => setFocusedInput('email')}
-                      onBlur={() => setFocusedInput('')}
                     />
                   </View>
                 </View>
@@ -155,8 +149,6 @@ export default function SignUp() {
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry
-                      onFocus={() => setFocusedInput('password')}
-                      onBlur={() => setFocusedInput('')}
                     />
                   </View>
                   <Text style={styles.inputHint}>Must be at least 6 characters</Text>
@@ -289,7 +281,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 56,
     justifyContent: 'center',
-    transition: 'all 0.2s',
   },
   inputContainerFocused: {
     backgroundColor: '#ffffff',

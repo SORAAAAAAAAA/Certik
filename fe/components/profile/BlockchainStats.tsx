@@ -2,23 +2,26 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Award, Lock } from 'lucide-react-native';
 import StatCard from '@/components/ui/StatCard';
+import { useCertificates } from '@/context/certificateContext';
 
 export default function BlockchainStats() {
+    const { stats } = useCertificates();
+    
     return (
         <View style={styles.statsSection}>
             <StatCard
                 icon={Award}
-                value="12"
+                value={stats.total.toString()}
                 label="Certificates"
             />
             <View style={styles.statCard}>
                 <Text style={styles.statBadge}>✓</Text>
-                <Text style={styles.statValue}>100%</Text>
+                <Text style={styles.statValue}>{stats.verifiedPercent}</Text>
                 <Text style={styles.statLabel}>Verified</Text>
             </View>
             <StatCard
                 icon={Lock}
-                value="12"
+                value={stats.onChain.toString()}
                 label="On-Chain"
             />
         </View>
